@@ -107,57 +107,57 @@ Predefined Locations (Configuration Values):
 
 Output Format:
 You must return a valid JSON object with the following structure:
-{
+{{
   "tasks": [
-    {
+    {{
       "task_id": 0,
       "action": "move_home",
       "description": "Move to home position for vision recognition"
-    },
-    {
+    }},
+    {{
       "task_id": 1,
       "action": "see",
       "description": "Identify the red cube using vision",
-      "parameters": {"target": "red_cube"}
-    },
-    {
+      "parameters": {{"target": "red_cube"}}
+    }},
+    {{
       "task_id": 2,
       "action": "move",
       "description": "Move arm to red cube location",
-      "parameters": {"x": null, "y": null, "z": null}
-    },
-    {
+      "parameters": {{"x": null, "y": null, "z": null}}
+    }},
+    {{
       "task_id": 3,
       "action": "grasp",
       "description": "Grasp the red cube",
-      "parameters": {"grasp": true}
-    },
-    {
+      "parameters": {{"grasp": true}}
+    }},
+    {{
       "task_id": 4,
       "action": "move",
       "description": "Move robot arm to the right",
-      "parameters": {"relative": true, "direction": "right", "distance": 0.05}
-    },
-    {
+      "parameters": {{"relative": true, "direction": "right", "distance": 0.05}}
+    }},
+    {{
       "task_id": 5,
       "action": "move",
       "description": "Move robot arm forward (using default distance)",
-      "parameters": {"relative": true, "direction": "forward"}
-    },
+      "parameters": {{"relative": true, "direction": "forward"}}
+    }},
     {{
       "task_id": 6,
       "action": "move",
       "description": "Move to bin location to drop the object",
       "parameters": {{"x": {bin_x_str}, "y": {bin_y_str}, "z": {bin_z_str}}}
     }},
-    {
+    {{
       "task_id": 7,
       "action": "grasp",
       "description": "Release the object into the bin",
-      "parameters": {"grasp": false}
-    }
+      "parameters": {{"grasp": false}}
+    }}
   ]
-}
+}}
 
 Important Rules:
 - Task IDs must be sequential starting from 0
@@ -174,7 +174,7 @@ Important Rules:
   * After moving to bin, always release the gripper with grasp(false)
   * Consider moving up slightly before releasing to avoid collisions
 - For relative movement commands (e.g., "move right", "move forward", "move the red cube to the right"):
-  * Use {"relative": true, "direction": "direction_name", "distance": value_in_m}
+  * Use {{"relative": true, "direction": "direction_name", "distance": value_in_m}}
   * If distance is not mentioned, omit the "distance" field to use default (0.05m = 5cm)
   * All distance values are in meters (m)
   * Valid directions: "right", "left", "forward", "backward", "back", "up", "down"

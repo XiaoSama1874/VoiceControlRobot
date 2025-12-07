@@ -3,7 +3,37 @@
     {
       "task_id": 0,
       "action": "move_home",
-      "description": "Return the robot arm to the home position"
+      "description": "Move to home position for vision recognition before locating the red cube"
+    },
+    {
+      "task_id": 1,
+      "action": "see",
+      "description": "Identify the red cube using vision",
+      "parameters": {"target": "red_cube"}
+    },
+    {
+      "task_id": 2,
+      "action": "move",
+      "description": "Move arm to the red cube location",
+      "parameters": {"x": null, "y": null, "z": null}
+    },
+    {
+      "task_id": 3,
+      "action": "grasp",
+      "description": "Grasp the red cube",
+      "parameters": {"grasp": true}
+    },
+    {
+      "task_id": 4,
+      "action": "move",
+      "description": "Move to bin location to drop the red cube",
+      "parameters": {"x": 0.1, "y": -0.2, "z": 0.3}
+    },
+    {
+      "task_id": 5,
+      "action": "grasp",
+      "description": "Release the red cube into the bin",
+      "parameters": {"grasp": false}
     }
   ]
 }

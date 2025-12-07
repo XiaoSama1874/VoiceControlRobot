@@ -4,12 +4,58 @@ Robot Functions Module
 This module contains the atomic robot control functions.
 move_home, move, and grasp communicate with Raspberry Pi via TCP socket.
 see function uses local implementation (no camera available yet).
+
+Debug Mode:
+When ROBOT_DEBUG_MODE is enabled in config.py, functions will return mock responses
+instead of communicating with the real robot server. This is useful for testing
+without hardware or network connectivity.
 """
 
 from typing import Dict, Any, Optional, Tuple
 import time
 import config
 from .socket_client import get_socket_client
+
+
+def _get_mock_response(json_command: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Generate a mock server response for debug mode.
+    
+    Args:
+        json_command: The command that would be sent to the server
+        
+    Returns:
+        Mock response dictionary matching server response format
+    """
+    action = json_command.get("action", "unknown")
+    
+    # Simulate network delay if enabled
+    if config.ROBOT_DEBUG_SIMULATE_DELAY:
+        time.sleep(config.ROBOT_DEBUG_DELAY_TIME)
+    
+    # Generate appropriate mock response based on action
+    if action == "move_home":
+        return {
+            "status": "success",
+            "message": f"Robot arm moved to home position ({json_command.get('x')}, {json_command.get('y')}, {json_command.get('z')})"
+        }
+    elif action == "move":
+        return {
+            "status": "success",
+            "message": f"Robot arm moved to position ({json_command.get('x')}, {json_command.get('y')}, {json_command.get('z')})"
+        }
+    elif action == "grasp":
+        grasp_state = json_command.get("grasp", False)
+        action_desc = "grasped" if grasp_state else "released"
+        return {
+            "status": "success",
+            "message": f"End effector {action_desc} successfully"
+        }
+    else:
+        return {
+            "status": "error",
+            "message": f"Unknown action: {action}"
+        }
 
 
 def move_home() -> Dict[str, Any]:
@@ -33,20 +79,37 @@ def move_home() -> Dict[str, Any]:
         "z": home_pos["z"]
     }
     
-    # Send command via socket
-    socket_client = get_socket_client()
-    response = socket_client.send_command(json_command)
+    # Check if debug mode is enabled
+    print(f"[robot_functions] [DEBUG] DEBUG_MODE = {config.ROBOT_DEBUG_MODE}")
+    if config.ROBOT_DEBUG_MODE:
+        print("[robot_functions] [DEBUG MODE] Using mock server response")
+        print(f"[robot_functions] [DEBUG] Command that would be sent: {json_command}")
+        response = _get_mock_response(json_command)
+        print(f"[robot_functions] [DEBUG] Mock response received: {response}")
+    else:
+        # Send command via socket
+        print(f"[robot_functions] [DEBUG] Using real socket communication")
+        print(f"[robot_functions] [DEBUG] Getting socket client...")
+        socket_client = get_socket_client()
+        print(f"[robot_functions] [DEBUG] Sending command via socket...")
+        response = socket_client.send_command(json_command)
+        print(f"[robot_functions] [DEBUG] Socket response received: {response}")
     
     if response is None:
-        return {
+        print(f"[robot_functions] [DEBUG] ✗ Response is None - communication failed")
+        result = {
             "status": "error",
             "action": "move_home",
             "message": "Failed to communicate with robot server",
             "position": home_pos.copy()
         }
+        print(f"[robot_functions] [DEBUG] Returning error result: {result}")
+        return result
     
     # Check server response status
     server_status = response.get("status", "error")
+    print(f"[robot_functions] [DEBUG] Server response status: {server_status}")
+    
     if server_status == "success" or server_status is True:
         result = {
             "status": "success",
@@ -54,6 +117,7 @@ def move_home() -> Dict[str, Any]:
             "message": response.get("message", "Robot arm moved to home position"),
             "position": home_pos.copy()
         }
+        print(f"[robot_functions] [DEBUG] ✓ Success result: {result}")
     else:
         result = {
             "status": "error",
@@ -61,6 +125,7 @@ def move_home() -> Dict[str, Any]:
             "message": response.get("message", "Server returned error status"),
             "position": home_pos.copy()
         }
+        print(f"[robot_functions] [DEBUG] ✗ Error result: {result}")
     
     print(f"[robot_functions] move_home() completed: {result}")
     return result
@@ -93,21 +158,39 @@ def move(x: Optional[float] = None, y: Optional[float] = None, z: Optional[float
         "y": final_y,
         "z": final_z
     }
+    print(f"[robot_functions] [DEBUG] Built JSON command: {json_command}")
     
-    # Send command via socket
-    socket_client = get_socket_client()
-    response = socket_client.send_command(json_command)
+    # Check if debug mode is enabled
+    print(f"[robot_functions] [DEBUG] DEBUG_MODE = {config.ROBOT_DEBUG_MODE}")
+    if config.ROBOT_DEBUG_MODE:
+        print("[robot_functions] [DEBUG MODE] Using mock server response")
+        print(f"[robot_functions] [DEBUG] Command that would be sent: {json_command}")
+        response = _get_mock_response(json_command)
+        print(f"[robot_functions] [DEBUG] Mock response received: {response}")
+    else:
+        # Send command via socket
+        print(f"[robot_functions] [DEBUG] Using real socket communication")
+        print(f"[robot_functions] [DEBUG] Getting socket client...")
+        socket_client = get_socket_client()
+        print(f"[robot_functions] [DEBUG] Sending command via socket...")
+        response = socket_client.send_command(json_command)
+        print(f"[robot_functions] [DEBUG] Socket response received: {response}")
     
     if response is None:
-        return {
+        print(f"[robot_functions] [DEBUG] ✗ Response is None - communication failed")
+        result = {
             "status": "error",
             "action": "move",
             "message": "Failed to communicate with robot server",
             "position": {"x": final_x, "y": final_y, "z": final_z}
         }
+        print(f"[robot_functions] [DEBUG] Returning error result: {result}")
+        return result
     
     # Check server response status
     server_status = response.get("status", "error")
+    print(f"[robot_functions] [DEBUG] Server response status: {server_status}")
+    
     if server_status == "success" or server_status is True:
         result = {
             "status": "success",
@@ -115,6 +198,7 @@ def move(x: Optional[float] = None, y: Optional[float] = None, z: Optional[float
             "message": response.get("message", f"Robot arm moved to position ({final_x}, {final_y}, {final_z})"),
             "position": {"x": final_x, "y": final_y, "z": final_z}
         }
+        print(f"[robot_functions] [DEBUG] ✓ Success result: {result}")
     else:
         result = {
             "status": "error",
@@ -122,6 +206,7 @@ def move(x: Optional[float] = None, y: Optional[float] = None, z: Optional[float
             "message": response.get("message", "Server returned error status"),
             "position": {"x": final_x, "y": final_y, "z": final_z}
         }
+        print(f"[robot_functions] [DEBUG] ✗ Error result: {result}")
     
     print(f"[robot_functions] move() completed: {result}")
     return result
@@ -146,21 +231,39 @@ def grasp(grasp: bool) -> Dict[str, Any]:
         "action_description": "Grasp" if grasp else "Release",
         "grasp": grasp
     }
+    print(f"[robot_functions] [DEBUG] Built JSON command: {json_command}")
     
-    # Send command via socket
-    socket_client = get_socket_client()
-    response = socket_client.send_command(json_command)
+    # Check if debug mode is enabled
+    print(f"[robot_functions] [DEBUG] DEBUG_MODE = {config.ROBOT_DEBUG_MODE}")
+    if config.ROBOT_DEBUG_MODE:
+        print("[robot_functions] [DEBUG MODE] Using mock server response")
+        print(f"[robot_functions] [DEBUG] Command that would be sent: {json_command}")
+        response = _get_mock_response(json_command)
+        print(f"[robot_functions] [DEBUG] Mock response received: {response}")
+    else:
+        # Send command via socket
+        print(f"[robot_functions] [DEBUG] Using real socket communication")
+        print(f"[robot_functions] [DEBUG] Getting socket client...")
+        socket_client = get_socket_client()
+        print(f"[robot_functions] [DEBUG] Sending command via socket...")
+        response = socket_client.send_command(json_command)
+        print(f"[robot_functions] [DEBUG] Socket response received: {response}")
     
     if response is None:
-        return {
+        print(f"[robot_functions] [DEBUG] ✗ Response is None - communication failed")
+        result = {
             "status": "error",
             "action": "grasp",
             "grasp_state": grasp,
             "message": "Failed to communicate with robot server"
         }
+        print(f"[robot_functions] [DEBUG] Returning error result: {result}")
+        return result
     
     # Check server response status
     server_status = response.get("status", "error")
+    print(f"[robot_functions] [DEBUG] Server response status: {server_status}")
+    
     if server_status == "success" or server_status is True:
         result = {
             "status": "success",
@@ -168,6 +271,7 @@ def grasp(grasp: bool) -> Dict[str, Any]:
             "grasp_state": grasp,
             "message": response.get("message", f"End effector {'grasped' if grasp else 'released'} successfully")
         }
+        print(f"[robot_functions] [DEBUG] ✓ Success result: {result}")
     else:
         result = {
             "status": "error",
@@ -175,6 +279,7 @@ def grasp(grasp: bool) -> Dict[str, Any]:
             "grasp_state": grasp,
             "message": response.get("message", "Server returned error status")
         }
+        print(f"[robot_functions] [DEBUG] ✗ Error result: {result}")
     
     print(f"[robot_functions] grasp() completed: {result}")
     return result

@@ -44,18 +44,17 @@ ROBOT_UNIT = "m"  # Unit for all robot coordinates and distances
 # Robot Home Position (in m)
 # Default position where the robot arm returns to
 ROBOT_HOME_POSITION = {
-    "x": 0.1,   # m (10cm)
-    "y": 0.0,   # m
-    "z": 0.25   # m (25cm)
+    "x": 0.169,   # m (10cm)
+    "y": 0.000,   # m
+    "z": 0.198   # m (25cm)
 }
 
 # Vision Target Fixed Coordinates (placeholder values, in m)
 # These are used when vision system is not available
 VISION_TARGET_COORDINATES = {
-    "cube": {"x": 0.1, "y": 0.05, "z": 0.02},      # m (10cm, 5cm, 2cm)
-    "red_cube": {"x": 0.1, "y": 0.05, "z": 0.02},   # m (10cm, 5cm, 2cm)
-    "blue_cube": {"x": 0.15, "y": 0.08, "z": 0.02},  # m (15cm, 8cm, 2cm)
-    "green_cube": {"x": 0.12, "y": 0.03, "z": 0.02}, # m (12cm, 3cm, 2cm)
+    "cube": {"x": 0.207, "y": 0.00, "z": 0.070},      # m (10cm, 5cm, 2cm)
+    "red_cube": {"x": 0.207, "y": 0.00, "z": 0.070},   # m (10cm, 5cm, 2cm)
+    "green_cube": {"x": 0.2999, "y": 0.00, "z": 0.067}, # m (12cm, 3cm, 2cm)
 }
 
 # Bin/Drop-off Location Coordinates (in m)
@@ -72,10 +71,10 @@ ROBOT_DEFAULT_POSITION = {
 }
 
 # Robot Function Execution Times (simulation delays)
-ROBOT_MOVE_HOME_DELAY = 0.5  # seconds
-ROBOT_MOVE_DELAY = 0.5  # seconds
-ROBOT_GRASP_DELAY = 0.3  # seconds
-ROBOT_SEE_DELAY = 0.5  # seconds
+ROBOT_MOVE_HOME_DELAY = 0.5  
+ROBOT_MOVE_DELAY = 0.5   
+ROBOT_GRASP_DELAY = 0.3  
+ROBOT_SEE_DELAY = 0.5   
 
 # Socket Communication Configuration
 # Raspberry Pi robot server connection settings
@@ -84,6 +83,12 @@ ROBOT_SOCKET_PORT = 5005  # Port number for robot server
 ROBOT_SOCKET_TIMEOUT = 5.0  # Connection and receive timeout (seconds)
 ROBOT_SOCKET_RETRY_ATTEMPTS = 3  # Number of retry attempts for connection/communication
 ROBOT_SOCKET_RETRY_DELAY = 1.0  # Delay between retry attempts (seconds)
+
+# Debug Mode Configuration
+# When enabled, robot functions will use mock responses instead of real socket communication
+ROBOT_DEBUG_MODE = True  # Set to True to enable mock server responses
+ROBOT_DEBUG_SIMULATE_DELAY = True  # Simulate network delay in debug mode (seconds)
+ROBOT_DEBUG_DELAY_TIME = 0.1  # Delay time for mock responses (seconds)
 
 # Relative Movement Configuration
 ROBOT_RELATIVE_MOVE_DEFAULT_DISTANCE = 0.05  # Default distance for relative movement (m) (5cm)
