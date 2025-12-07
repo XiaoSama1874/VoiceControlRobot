@@ -163,7 +163,7 @@ class Executor:
                     # Use default distance if not specified
                     if distance is None:
                         distance = config.ROBOT_RELATIVE_MOVE_DEFAULT_DISTANCE
-                        print(f"[Executor] → Using default relative move distance: {distance}cm")
+                        print(f"[Executor] → Using default relative move distance: {distance}m")
                     
                     # Get current position from context, or use home position as fallback
                     if "last_position" in self.execution_context:
@@ -196,7 +196,7 @@ class Executor:
                     elif axis == "z":
                         target_z += sign * distance
                     
-                    print(f"[Executor] → Relative move: {direction} by {distance}cm")
+                    print(f"[Executor] → Relative move: {direction} by {distance}m")
                     print(f"[Executor] → Current position: {current_pos}")
                     print(f"[Executor] → Target position: x={target_x}, y={target_y}, z={target_z}")
                     
@@ -210,6 +210,14 @@ class Executor:
                     z = parameters.get("z")
                     
                     print(f"[Executor] → Initial move parameters: x={x}, y={y}, z={z}")
+                    
+                    # Check if this is a bin location (predefined coordinates)
+                    if x is not None and y is not None and z is not None:
+                        bin_coords = config.BIN_COORDINATES.get("bin", {})
+                        if (abs(x - bin_coords.get("x", 0)) < 0.001 and
+                            abs(y - bin_coords.get("y", 0)) < 0.001 and
+                            abs(z - bin_coords.get("z", 0)) < 0.001):
+                            print(f"[Executor] → Detected bin location: ({x}, {y}, {z})")
                     
                     # If coordinates are None, try to get from context (from see() result)
                     if x is None and "last_vision_coordinates" in self.execution_context:
@@ -244,9 +252,9 @@ class Executor:
                 
                 # Check if current position is at home (with small tolerance for floating point comparison)
                 is_at_home = (
-                    abs(current_pos.get("x", 0) - home_pos["x"]) < 0.01 and
-                    abs(current_pos.get("y", 0) - home_pos["y"]) < 0.01 and
-                    abs(current_pos.get("z", 0) - home_pos["z"]) < 0.01
+                    abs(current_pos.get("x", 0) - home_pos["x"]) < 0.001 and
+                    abs(current_pos.get("y", 0) - home_pos["y"]) < 0.001 and
+                    abs(current_pos.get("z", 0) - home_pos["z"]) < 0.001
                 )
                 
                 if not is_at_home:

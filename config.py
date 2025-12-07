@@ -37,27 +37,38 @@ LLM_MAX_RETRIES = 3  # Maximum number of retry attempts for API calls
 # Executor Module Configuration
 # ============================================================================
 
-# Robot Home Position
+# Unit System
+# All coordinates and distances are in meters (m)
+ROBOT_UNIT = "m"  # Unit for all robot coordinates and distances
+
+# Robot Home Position (in m)
+# Default position where the robot arm returns to
 ROBOT_HOME_POSITION = {
-    "x": 0.0,
-    "y": 0.0,
-    "z": 0.0
+    "x": 0.1,   # m (10cm)
+    "y": 0.0,   # m
+    "z": 0.25   # m (25cm)
 }
 
-# Vision Target Fixed Coordinates (placeholder values)
+# Vision Target Fixed Coordinates (placeholder values, in m)
 # These are used when vision system is not available
 VISION_TARGET_COORDINATES = {
-    "cube": {"x": 10.0, "y": 5.0, "z": 2.0},
-    "red_cube": {"x": 10.0, "y": 5.0, "z": 2.0},
-    "blue_cube": {"x": 15.0, "y": 8.0, "z": 2.0},
-    "green_cube": {"x": 12.0, "y": 3.0, "z": 2.0},
+    "cube": {"x": 0.1, "y": 0.05, "z": 0.02},      # m (10cm, 5cm, 2cm)
+    "red_cube": {"x": 0.1, "y": 0.05, "z": 0.02},   # m (10cm, 5cm, 2cm)
+    "blue_cube": {"x": 0.15, "y": 0.08, "z": 0.02},  # m (15cm, 8cm, 2cm)
+    "green_cube": {"x": 0.12, "y": 0.03, "z": 0.02}, # m (12cm, 3cm, 2cm)
 }
 
-# Default coordinates when move() is called with None values
+# Bin/Drop-off Location Coordinates (in m)
+# Predefined locations where objects can be placed
+BIN_COORDINATES = {
+    "bin": {"x": 0.1, "y": -0.2, "z": 0.3},  # m (10cm, -20cm, 30cm) - Default bin location
+}
+
+# Default coordinates when move() is called with None values (in m)
 ROBOT_DEFAULT_POSITION = {
-    "x": 0.0,
-    "y": 0.0,
-    "z": 0.0
+    "x": 0.0,  # m
+    "y": 0.0,  # m
+    "z": 0.0   # m
 }
 
 # Robot Function Execution Times (simulation delays)
@@ -66,19 +77,31 @@ ROBOT_MOVE_DELAY = 0.5  # seconds
 ROBOT_GRASP_DELAY = 0.3  # seconds
 ROBOT_SEE_DELAY = 0.5  # seconds
 
+# Socket Communication Configuration
+# Raspberry Pi robot server connection settings
+ROBOT_SOCKET_HOST = "10.141.25.190"  # Default host (overridden by ME578_RPI_IP_ADDR env var)
+ROBOT_SOCKET_PORT = 5005  # Port number for robot server
+ROBOT_SOCKET_TIMEOUT = 5.0  # Connection and receive timeout (seconds)
+ROBOT_SOCKET_RETRY_ATTEMPTS = 3  # Number of retry attempts for connection/communication
+ROBOT_SOCKET_RETRY_DELAY = 1.0  # Delay between retry attempts (seconds)
+
 # Relative Movement Configuration
-ROBOT_RELATIVE_MOVE_DEFAULT_DISTANCE = 20.0  # Default distance for relative movement (cm)
+ROBOT_RELATIVE_MOVE_DEFAULT_DISTANCE = 0.05  # Default distance for relative movement (m) (5cm)
 
 # Direction to Axis Mapping for Relative Movement
+# Coordinate System: Base center (0,0,0) as origin
+# - X-axis: Positive direction points forward (front of robot)
+# - Y-axis: Positive direction points left (left side of robot)
+# - Z-axis: Positive direction points upward (perpendicular to base plane)
 # Directions are relative to the robot's current position
 ROBOT_DIRECTION_MAPPING = {
-    "right": {"axis": "x", "sign": 1},      # Right → x axis positive
-    "left": {"axis": "x", "sign": -1},      # Left → x axis negative
-    "forward": {"axis": "y", "sign": 1},    # Forward → y axis positive
-    "backward": {"axis": "y", "sign": -1},  # Backward → y axis negative
-    "back": {"axis": "y", "sign": -1},      # Back (alias for backward)
-    "up": {"axis": "z", "sign": 1},         # Up → z axis positive
-    "down": {"axis": "z", "sign": -1}       # Down → z axis negative
+    "forward": {"axis": "x", "sign": 1},    # Forward → +X axis (front)
+    "backward": {"axis": "x", "sign": -1},   # Backward → -X axis (back)
+    "back": {"axis": "x", "sign": -1},      # Back (alias for backward) → -X axis
+    "left": {"axis": "y", "sign": 1},       # Left → +Y axis (left side)
+    "right": {"axis": "y", "sign": -1},     # Right → -Y axis (right side)
+    "up": {"axis": "z", "sign": 1},         # Up → +Z axis (upward)
+    "down": {"axis": "z", "sign": -1}       # Down → -Z axis (downward)
 }
 
 # ============================================================================

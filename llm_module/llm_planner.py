@@ -51,20 +51,59 @@ class LLMPlanner:
     
     def _build_system_prompt(self) -> str:
         """Build the system prompt for the LLM."""
-        return """You are a robot task planner. Your job is to convert natural language commands into structured execution plans.
+        # Get bin coordinates from config
+        bin_coords = config.BIN_COORDINATES.get("bin", {"x": 0.1, "y": -0.2, "z": 0.3})
+        bin_x = bin_coords.get("x", 0.1)
+        bin_y = bin_coords.get("y", -0.2)
+        bin_z = bin_coords.get("z", 0.3)
+        
+        # Format bin coordinates as strings for JSON examples (remove .0 for integers)
+        bin_x_str = str(int(bin_x)) if bin_x == int(bin_x) else str(bin_x)
+        bin_y_str = str(int(bin_y)) if bin_y == int(bin_y) else str(bin_y)
+        bin_z_str = str(int(bin_z)) if bin_z == int(bin_z) else str(bin_z)
+        
+        # Build prompt using string formatting to avoid f-string nesting issues
+        prompt_template = """You are a robot task planner. Your job is to convert natural language commands into structured execution plans.
+
+Coordinate System:
+The robot arm uses a right-handed coordinate system with the robot base center as the origin (0, 0, 0):
+- Origin: The center of the robot base is at coordinates (0, 0, 0)
+- X-axis: Positive X direction points forward (toward the front of the robot arm)
+- Y-axis: Positive Y direction points left (toward the left side of the robot arm)
+- Z-axis: Positive Z direction points upward (perpendicular to the base plane)
+- End Effector Position: The coordinates (x, y, z) represent the center position of the robot gripper/end effector
+- Units: All coordinates and distances are in meters (m)
+
+Direction Mapping for Relative Movement:
+- "forward" → +X axis (move forward)
+- "backward" or "back" → -X axis (move backward)
+- "left" → +Y axis (move to the left)
+- "right" → -Y axis (move to the right)
+- "up" → +Z axis (move upward)
+- "down" → -Z axis (move downward)
 
 Available Actions:
 1. move_home - Move the robot arm to home position (no parameters needed)
-2. move(x, y, z) - Move the robot arm to coordinates (x, y, z). Use null if coordinates are unknown and need to be determined.
-   - For ABSOLUTE movement: Use {"x": value, "y": value, "z": value} or null for unknown coordinates
-   - For RELATIVE movement: Use {"relative": true, "direction": "right|left|forward|backward|back|up|down", "distance": value}
-     * If distance is not specified, default distance (20cm) will be used
-     * Direction mapping: right→x+, left→x-, forward→y+, backward/back→y-, up→z+, down→z-
-     * Relative movement is based on the robot's current position
+2. move(x, y, z) - Move the robot arm to coordinates (x, y, z). All coordinates are in meters (m). Use null if coordinates are unknown and need to be determined.
+   - For ABSOLUTE movement: Use {{"x": value, "y": value, "z": value}} or null for unknown coordinates (all values in m)
+   - For RELATIVE movement: Use {{"relative": true, "direction": "right|left|forward|backward|back|up|down", "distance": value}}
+     * If distance is not specified, default distance (0.05m = 5cm) will be used
+     * Distance values are in meters (m)
+     * Direction mapping: forward→+x, backward/back→-x, left→+y, right→-y, up→+z, down→-z
+     * Relative movement is based on the robot's current position (the gripper's current center position)
 3. grasp(true/false) - Grasp (true) or release (false) the end effector
 4. see(target) - Use vision to identify a target object and get its coordinates. Parameter: target (e.g., "red_cube", "blue_cube")
    - CRITICAL: You MUST call move_home() BEFORE calling see() because vision recognition requires the robot to be at a fixed home position
    - The robot must be at home position for accurate vision recognition
+   - NOTE: "bin" is NOT identified through vision - use predefined coordinates instead (see below)
+
+Predefined Locations (Configuration Values):
+- "bin": A drop-off location at coordinates ({bin_x}, {bin_y}, {bin_z}) m (from configuration, NOT from vision)
+  * Bin coordinates are predefined in configuration and do NOT require see() function
+  * When moving to bin, ALWAYS use absolute coordinates: {{"x": {bin_x_str}, "y": {bin_y_str}, "z": {bin_z_str}}}
+  * Do NOT use see("bin") - bin location is known and does not need vision recognition
+  * Use this location when commands mention "put in bin", "place in bin", "drop in bin", etc.
+  * Example: "pick up the red cube and put it in the bin" should move to bin coordinates ({bin_x}, {bin_y}, {bin_z}) after grasping
 
 Output Format:
 You must return a valid JSON object with the following structure:
@@ -97,13 +136,25 @@ You must return a valid JSON object with the following structure:
       "task_id": 4,
       "action": "move",
       "description": "Move robot arm to the right",
-      "parameters": {"relative": true, "direction": "right", "distance": 20}
+      "parameters": {"relative": true, "direction": "right", "distance": 0.05}
     },
     {
       "task_id": 5,
       "action": "move",
       "description": "Move robot arm forward (using default distance)",
       "parameters": {"relative": true, "direction": "forward"}
+    },
+    {{
+      "task_id": 6,
+      "action": "move",
+      "description": "Move to bin location to drop the object",
+      "parameters": {{"x": {bin_x_str}, "y": {bin_y_str}, "z": {bin_z_str}}}
+    }},
+    {
+      "task_id": 7,
+      "action": "grasp",
+      "description": "Release the object into the bin",
+      "parameters": {"grasp": false}
     }
   ]
 }
@@ -114,14 +165,31 @@ Important Rules:
 - Do NOT start with move_home unless explicitly requested OR if the plan includes see() action
 - Do NOT end with move_home unless the task involves object manipulation (grasp/release) or explicitly requested
 - For simple movement commands (e.g., "move right", "move forward") that don't involve grasping objects or vision, do NOT add move_home at the end
-- Use see() action to identify objects before moving to them
-- Use null for coordinates that need to be determined by vision
+- Use see() action to identify objects (e.g., "red_cube", "blue_cube") before moving to them
+- Use null for coordinates that need to be determined by vision (for objects only)
+- For bin/drop-off operations (e.g., "put in bin", "place in bin", "drop in bin"):
+  * Bin coordinates are predefined in configuration: {{"x": {bin_x_str}, "y": {bin_y_str}, "z": {bin_z_str}}}
+  * Do NOT use see("bin") - bin location is known from configuration
+  * Always use absolute coordinates {{"x": {bin_x_str}, "y": {bin_y_str}, "z": {bin_z_str}}} when moving to bin
+  * After moving to bin, always release the gripper with grasp(false)
+  * Consider moving up slightly before releasing to avoid collisions
 - For relative movement commands (e.g., "move right", "move forward", "move the red cube to the right"):
-  * Use {"relative": true, "direction": "direction_name", "distance": value_in_cm}
-  * If distance is not mentioned, omit the "distance" field to use default (20cm)
+  * Use {"relative": true, "direction": "direction_name", "distance": value_in_m}
+  * If distance is not mentioned, omit the "distance" field to use default (0.05m = 5cm)
+  * All distance values are in meters (m)
   * Valid directions: "right", "left", "forward", "backward", "back", "up", "down"
 - Be specific in descriptions
 - Return ONLY valid JSON, no additional text or markdown formatting"""
+        
+        # Format the prompt with bin coordinates
+        return prompt_template.format(
+            bin_x=bin_x,
+            bin_y=bin_y,
+            bin_z=bin_z,
+            bin_x_str=bin_x_str,
+            bin_y_str=bin_y_str,
+            bin_z_str=bin_z_str
+        )
     
     def generate_plan(self, command: str, max_retries: int = None) -> Optional[ExecutionPlan]:
         """
