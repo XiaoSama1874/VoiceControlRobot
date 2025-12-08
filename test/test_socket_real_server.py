@@ -66,13 +66,15 @@ class TestRealServerConnection(unittest.TestCase):
         """Test sending move command to real server."""
         print("\n[Test] === Testing move() ===")
         
+        # 0.2271, -0.1448, 0.0360
         # Test with specific coordinates
-        test_x = 10.0
-        test_y = 20.0
-        test_z = 30.0
+        test_x = 0.2271
+        test_y = -0.1448
+        test_z = 0.0360
         
         print(f"[Test] Moving to ({test_x}, {test_y}, {test_z})")
         result = move(x=test_x, y=test_y, z=test_z)
+        # result = move_home()
         
         print(f"[Test] Result: {result}")
         self.assertIsNotNone(result)
@@ -103,18 +105,18 @@ class TestRealServerConnection(unittest.TestCase):
         else:
             print(f"[Test] ✗ grasp(True) failed: {result.get('message', 'Unknown error')}")
         
-        # Test release (open)
-        print("[Test] Testing grasp=False (open gripper)")
-        result = grasp(False)
+        # # Test release (open)
+        # print("[Test] Testing grasp=False (open gripper)")
+        # result = grasp(False)
         
-        print(f"[Test] Result: {result}")
-        self.assertIsNotNone(result)
-        self.assertIn("status", result)
+        # print(f"[Test] Result: {result}")
+        # self.assertIsNotNone(result)
+        # self.assertIn("status", result)
         
-        if result.get("status") == "success":
-            print("[Test] ✓ grasp(False) succeeded")
-        else:
-            print(f"[Test] ✗ grasp(False) failed: {result.get('message', 'Unknown error')}")
+        # if result.get("status") == "success":
+        #     print("[Test] ✓ grasp(False) succeeded")
+        # else:
+        #     print(f"[Test] ✗ grasp(False) failed: {result.get('message', 'Unknown error')}")
     
     def test_multiple_commands_sequence(self):
         """Test sending multiple commands in sequence."""

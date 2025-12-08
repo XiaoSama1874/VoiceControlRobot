@@ -3,36 +3,42 @@
     {
       "task_id": 0,
       "action": "move_home",
-      "description": "Move to home position for vision recognition before locating the red cube"
+      "description": "Move to home position for vision recognition before finding the right object"
     },
     {
       "task_id": 1,
       "action": "see",
-      "description": "Identify the red cube using vision",
-      "parameters": {"target": "red_cube"}
+      "description": "Identify the right-side object using vision",
+      "parameters": {"target": "right_object"}
     },
     {
       "task_id": 2,
       "action": "move",
-      "description": "Move arm to the red cube location",
+      "description": "Move arm to the right object location",
       "parameters": {"x": null, "y": null, "z": null}
     },
     {
       "task_id": 3,
       "action": "grasp",
-      "description": "Grasp the red cube",
+      "description": "Grasp the right object",
       "parameters": {"grasp": true}
     },
     {
       "task_id": 4,
       "action": "move",
-      "description": "Move to bin location to drop the red cube",
-      "parameters": {"x": 0.1, "y": -0.2, "z": 0.3}
+      "description": "Lift the right object slightly upward to avoid collisions",
+      "parameters": {"relative": true, "direction": "up", "distance": 0.05}
     },
     {
       "task_id": 5,
+      "action": "move",
+      "description": "Move to the red bin location to place the object",
+      "parameters": {"x": 0.1503, "y": 0.0, "z": 0.0708}
+    },
+    {
+      "task_id": 6,
       "action": "grasp",
-      "description": "Release the red cube into the bin",
+      "description": "Release the object into the red bin",
       "parameters": {"grasp": false}
     }
   ]

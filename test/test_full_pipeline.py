@@ -65,7 +65,7 @@ class TestFullPipeline(unittest.TestCase):
     
     def test_full_pipeline_simple_command(self):
         """Test full pipeline with simple command."""
-        command = "pick up the red square"
+        command = "pick up the red object"
         
         # Generate plan
         plan = self.planner.generate_plan(command)
@@ -84,7 +84,7 @@ class TestFullPipeline(unittest.TestCase):
     
     def test_full_pipeline_complex_command(self):
         """Test full pipeline with complex command."""
-        command = "pick up the red square and move it to the right"
+        command = "pick up the red object and move it to the right"
         
         # Generate plan
         plan = self.planner.generate_plan(command)
@@ -103,7 +103,7 @@ class TestFullPipeline(unittest.TestCase):
     
     def test_full_pipeline_data_flow(self):
         """Test that data flows correctly from see() to move()."""
-        command = "pick up the red square"
+        command = "pick up the red object"
         
         # Generate plan
         plan = self.planner.generate_plan(command)
@@ -139,9 +139,9 @@ class TestFullPipeline(unittest.TestCase):
     def test_full_pipeline_multiple_commands(self):
         """Test full pipeline with multiple different commands."""
         commands = [
-            "pick up the red square",
-            "move the blue cube to the left",
-            "grasp the green circle"
+            "pick up the red object",
+            "move the blue object to the left",
+            "grasp the green object"
         ]
         
         for command in commands:

@@ -213,11 +213,14 @@ class Executor:
                     
                     # Check if this is a bin location (predefined coordinates)
                     if x is not None and y is not None and z is not None:
-                        bin_coords = config.BIN_COORDINATES.get("bin", {})
-                        if (abs(x - bin_coords.get("x", 0)) < 0.001 and
-                            abs(y - bin_coords.get("y", 0)) < 0.001 and
-                            abs(z - bin_coords.get("z", 0)) < 0.001):
-                            print(f"[Executor] → Detected bin location: ({x}, {y}, {z})")
+                        # Check all bin types: bin, red_bin, green_bin
+                        for bin_name in ["bin", "red_bin", "green_bin"]:
+                            bin_coords = config.BIN_COORDINATES.get(bin_name, {})
+                            if (abs(x - bin_coords.get("x", 0)) < 0.001 and
+                                abs(y - bin_coords.get("y", 0)) < 0.001 and
+                                abs(z - bin_coords.get("z", 0)) < 0.001):
+                                print(f"[Executor] → Detected {bin_name} location: ({x}, {y}, {z})")
+                                break
                     
                     # If coordinates are None, try to get from context (from see() result)
                     if x is None and "last_vision_coordinates" in self.execution_context:

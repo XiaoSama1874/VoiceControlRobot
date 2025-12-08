@@ -63,7 +63,7 @@ class TestLLMModule(unittest.TestCase):
     
     def test_generate_plan_simple_command(self):
         """Test generating plan from a simple command."""
-        command = "pick up the red square"
+        command = "pick up the red object"
         plan = self.planner.generate_plan(command)
         
         self.assertIsNotNone(plan, "Plan should be generated")
@@ -77,7 +77,7 @@ class TestLLMModule(unittest.TestCase):
     
     def test_generate_plan_complex_command(self):
         """Test generating plan from a complex command."""
-        command = "pick up the red square and move it to the right"
+        command = "pick up the red object and move it to the right"
         plan = self.planner.generate_plan(command)
         
         self.assertIsNotNone(plan, "Plan should be generated")
@@ -91,7 +91,7 @@ class TestLLMModule(unittest.TestCase):
     
     def test_generate_plan_with_move_command(self):
         """Test generating plan for move command."""
-        command = "move the blue cube to position 10, 5, 2"
+        command = "move the blue object to position 10, 5, 2"
         plan = self.planner.generate_plan(command)
         
         self.assertIsNotNone(plan, "Plan should be generated")
@@ -104,7 +104,7 @@ class TestLLMModule(unittest.TestCase):
     
     def test_plan_structure(self):
         """Test that generated plan has correct structure."""
-        command = "pick up the red square"
+        command = "pick up the red object"
         plan = self.planner.generate_plan(command)
         
         if plan:

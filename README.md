@@ -46,8 +46,14 @@ This project implements a voice-controlled robot system that:
                                │ TCP Socket
                                ▼
                     ┌─────────────────────┐
-                    │  Robot Server       │
+                    │  Socket Server      │
                     │  (Raspberry Pi)     │
+                    └──────────┬───────────┘
+                               │ ROS Topics
+                               ▼
+                    ┌─────────────────────┐
+                    │  Robot Control      │
+                    │  Nodes (xarm)       │
                     └──────────┬───────────┘
                                │
                                ▼
@@ -117,7 +123,7 @@ This project implements a voice-controlled robot system that:
 │                            │                                            │
 │                            ▼                                            │
 │              ┌───────────────────────────────────────┐                  │
-│              │      Socket Client                     │                  │
+│              │      Socket Client (Primary)           │                  │
 │              │  ┌──────────────────────────────────┐  │                  │
 │              │  │ - TCP Connection Management      │  │                  │
 │              │  │ - JSON Serialization/Deserial.   │  │                  │
@@ -131,13 +137,28 @@ This project implements a voice-controlled robot system that:
                                  │ JSON Messages
                                  ▼
                     ┌────────────────────────────────────┐
-                    │   Raspberry Pi Robot Server        │
-                    │   (ROS Node)                       │
+                    │   Socket Server (Raspberry Pi)    │
+                    │   (ROS2 Node)                     │
                     │                                    │
+                    │  ┌──────────────────────────────┐ │
+                    │  │ Socket Server                │ │
+                    │  │ - TCP Socket Listener        │ │
+                    │  │ - JSON Command Parser        │ │
+                    │  │ - ROS2 Topic Publisher       │ │
+                    │  └──────────┬───────────────────┘ │
+                    │             │                     │
+                    │             ▼                     │
+                    │  ┌──────────────────────────────┐ │
+                    │  │ ROS2 Topics                  │ │
+                    │  │ - /endpoint_desired          │ │
+                    │  │ - /gripper_command           │ │
+                    │  └──────────┬───────────────────┘ │
+                    │             │                     │
+                    │             ▼                     │
                     │  ┌──────────────┐  ┌──────────┐  │
-                    │  │ Trajectory   │  │ Vision   │  │
-                    │  │ Controller   │  │ System   │  │
-                    │  │ (MoveIt)     │  │ (Camera)  │  │
+                    │  │ xarm_        │  │ Vision   │  │
+                    │  │ kinematics   │  │ System   │  │
+                    │  │ (Trajectory) │  │ (Camera)  │  │
                     │  └──────┬───────┘  └────┬─────┘  │
                     │         │               │         │
                     └─────────┼───────────────┼─────────┘
@@ -196,14 +217,14 @@ This project implements a voice-controlled robot system that:
   - Example: "move forward" followed by "move forward" will move 0.05m + 0.05m from initial position
   - **Usage Examples**:
   - "move the robot arm to the right"
-  - "grab the red cube and move it forward"
+  - "grab the red object and move it forward"
   - "move forward 0.3m" (custom distance)
 
 ### 4. Vision Recognition
 - **Object Detection**: Identifies targets using vision system
 - **Automatic Home Positioning**: Automatically moves to home position before vision recognition
 - **Coordinate Extraction**: Returns target coordinates for subsequent movements
-- **Supported Targets**: red_cube, blue_cube, green_cube (configurable in `config.py`)
+- **Supported Targets**: red_object, green_object, blue_object (configurable in `config.py`)
 
 ### 5. Context Management
 - **Position Tracking**: Maintains robot position across multiple commands
@@ -326,7 +347,7 @@ python main_voice.py
 
 **Instructions:**
 1. Say "hi robot" to start a command
-2. Say your command (e.g., "pick up the red cube and move it to the right")
+2. Say your command (e.g., "pick up the red object and move it to the right")
 3. Say "command end" to end the command, OR wait 2 seconds of silence
 4. The system will generate an execution plan and execute it
 5. Press Ctrl+C to exit
@@ -335,8 +356,8 @@ python main_voice.py
 
 - **Simple movement**: "move the robot arm forward"
 - **Relative movement**: "move the robot arm to the right 0.3m"
-- **Object manipulation**: "pick up the red cube"
-- **Complex task**: "grab the blue cube and move it forward, then release it"
+- **Object manipulation**: "pick up the red object"
+- **Complex task**: "grab the blue object and move it forward, then release it"
 
 ## Testing
 
@@ -409,19 +430,19 @@ Execution plans are JSON structures with the following format:
     {
       "task_id": 1,
       "action": "see",
-      "description": "Identify the red cube using vision",
-      "parameters": {"target": "red_cube"}
+      "description": "Identify the red object using vision",
+      "parameters": {"target": "red_object"}
     },
     {
       "task_id": 2,
       "action": "move",
-      "description": "Move arm to red cube location",
+      "description": "Move arm to red object location",
       "parameters": {"x": null, "y": null, "z": null}
     },
     {
       "task_id": 3,
       "action": "grasp",
-      "description": "Grasp the red cube",
+      "description": "Grasp the red object",
       "parameters": {"grasp": true}
     },
     {
@@ -442,17 +463,33 @@ Execution plans are JSON structures with the following format:
    - Relative: `{"relative": true, "direction": "right|left|forward|backward|back|up|down", "distance": value}`
 3. **grasp** - Grasp or release: `{"grasp": true|false}`
 4. **see** - Vision recognition: `{"target": "target_name"}`
-   - Used for identifying objects (e.g., "red_cube", "blue_cube")
+   - Used for identifying objects (e.g., "red_object", "green_object", "blue_object")
    - **Note**: Bin location is NOT identified through vision (see Predefined Locations below)
 
 ### Predefined Locations (Configuration Values)
 
-- **bin**: A drop-off location at coordinates `(0.1, -0.2, 0.3)` m (from configuration)
+- **bin**: A default drop-off location at coordinates `(0.1, -0.2, 0.3)` m (from configuration)
   - Bin coordinates are predefined in `config.py` and do NOT require vision recognition
   - When moving to bin, use absolute coordinates: `{"x": 0.1, "y": -0.2, "z": 0.3}`
   - Do NOT use `see("bin")` - bin location is known from configuration
-  - Used for commands like "put in bin", "place in bin", "drop in bin"
-  - Example: "pick up the red cube and put it in the bin"
+  - Used for generic commands like "put in bin", "place in bin", "drop in bin"
+  
+- **red_bin**: A red-colored drop-off location (configurable coordinates in `config.py`)
+  - Red bin coordinates are predefined and do NOT require vision recognition
+  - When moving to red_bin, use absolute coordinates from configuration
+  - Do NOT use `see("red_bin")` - red bin location is known from configuration
+  - Used for commands like "put in red bin", "place in red bin", "drop in red bin"
+  
+- **green_bin**: A green-colored drop-off location (configurable coordinates in `config.py`)
+  - Green bin coordinates are predefined and do NOT require vision recognition
+  - When moving to green_bin, use absolute coordinates from configuration
+  - Do NOT use `see("green_bin")` - green bin location is known from configuration
+  - Used for commands like "put in green bin", "place in green bin", "drop in green bin"
+  
+  - Examples:
+    - "pick up the red object and put it in the red bin"
+    - "pick up the green object and put it in the green bin"
+    - "pick up the red object and put it in the bin" (uses default bin)
 
 ### Coordinate System
 
@@ -492,10 +529,16 @@ The robot arm uses a right-handed coordinate system with the robot base center a
 - Validates plans before execution
 
 ### Bin/Drop-off Operations
-- Predefined bin location at `(0.1, -0.2, 0.3)` m (from configuration in `config.py`)
-- Bin coordinates are configuration values, NOT obtained through vision recognition
-- Supports commands like "pick up the red cube and put it in the bin"
-- Automatically releases gripper after moving to bin location
+- **Multiple Bin Support**: System supports three bin types:
+  - `bin`: Default bin at `(0.1, -0.2, 0.3)` m
+  - `red_bin`: Red bin (configurable coordinates in `config.py`)
+  - `green_bin`: Green bin (configurable coordinates in `config.py`)
+- All bin coordinates are configuration values, NOT obtained through vision recognition
+- Supports commands like:
+  - "pick up the red object and put it in the red bin"
+  - "pick up the green object and put it in the green bin"
+  - "pick up the red object and put it in the bin" (uses default bin)
+- Automatically releases gripper after moving to any bin location
 
 
 ## Communication Protocol
@@ -630,6 +673,88 @@ All communication settings are configurable in `config.py`:
 - `ROBOT_SOCKET_RETRY_DELAY`: Delay between retries in seconds (default: `1.0`)
 
 **Note**: The host can be overridden by setting the `ME578_RPI_IP_ADDR` environment variable.
+
+### Socket Server Setup on Raspberry Pi
+
+The system uses TCP Socket communication as the primary method. The socket server runs on the Raspberry Pi and integrates with ROS2 to control the robot.
+
+#### Setup Steps
+
+1. **Ensure ROS2 is installed and sourced**:
+```bash
+source /opt/ros/humble/setup.bash  # Or your ROS2 version
+```
+
+2. **Start robot control nodes** (if not already running):
+```bash
+ros2 launch xarmrob xarm_automatic.launch.py
+```
+
+3. **Start Socket server**:
+```bash
+cd /path/to/VoiceControlRobot/robot_execution
+chmod +x start_socket_server.sh
+./start_socket_server.sh
+```
+
+The socket server will:
+- Listen on port 5005 (default, configurable)
+- Receive JSON commands from Mac client
+- Execute commands via ROS2 topics (`/endpoint_desired`, `/gripper_command`)
+- Send JSON responses back to client
+
+#### Testing
+
+Use the provided test scripts:
+
+1. **Connection Test**: `python test_rosbridge_connection.py` (if updated for socket)
+   - Tests Socket TCP connection
+   - Verifies network connectivity
+   - Checks configuration
+
+2. **Command Test**: `python test_robot_commands.py`
+   - Tests individual commands (move_home, move, grasp)
+   - Tests command sequences
+   - Validates responses
+
+For detailed setup instructions, see `robot_execution/README_Socket.md`.
+
+### ROSBridge Communication (Alternative)
+
+The system also supports ROSBridge WebSocket communication as an alternative to TCP sockets. However, ROSBridge may have compatibility issues on some systems (e.g., Debian Bookworm).
+
+#### Configuration
+
+In `config.py`, set:
+```python
+ROBOT_COMMUNICATION_MODE = "rosbridge"  # or "socket"
+ROSBridge_HOST = "10.141.25.190"        # Raspberry Pi IP
+ROSBridge_PORT = 9090                   # ROSBridge port
+```
+
+#### Setup on Raspberry Pi
+
+1. Install ROSBridge Suite:
+```bash
+# For Debian Bookworm, use ROS2 Humble:
+sudo apt install ros-humble-rosbridge-suite  # ROS2 Humble (推荐用于树莓派)
+
+# For Ubuntu 24.04+, use ROS2 Jazzy:
+sudo apt install ros-jazzy-rosbridge-suite  # ROS2 Jazzy
+```
+
+2. Start ROSBridge server:
+```bash
+ros2 launch rosbridge_server rosbridge_websocket.launch.py port:=9090
+```
+
+3. Start robot command receiver:
+```bash
+python3 robot_execution/robot_command_receiver.py
+```
+
+For detailed ROSBridge setup instructions, see `robot_execution/README_ROSBridge.md`.
+
 
 ## Development Notes
 

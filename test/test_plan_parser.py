@@ -21,15 +21,15 @@ class TestPlanParser(unittest.TestCase):
                 {
                 "task_id": 1,
                 "action": "see",
-                "description": "Use vision to locate the red square",
+                "description": "Use vision to locate the red object",
                 "parameters": {
-                    "target": "red_square"
+                    "target": "red_object"
                 }
                 },
                 {
                 "task_id": 2,
                 "action": "move",
-                "description": "Move robot arm to the red square location",
+                "description": "Move robot arm to the red object location",
                 "parameters": {
                     "x": null,
                     "y": null,
@@ -39,7 +39,7 @@ class TestPlanParser(unittest.TestCase):
                 {
                 "task_id": 3,
                 "action": "grasp",
-                "description": "Grasp the red square with the end effector",
+                "description": "Grasp the red object with the end effector",
                 "parameters": {
                     "grasp": true
                 }
@@ -47,7 +47,7 @@ class TestPlanParser(unittest.TestCase):
                 {
                 "task_id": 4,
                 "action": "move_home",
-                "description": "Return robot arm to home position with the red square",
+                "description": "Return robot arm to home position with the red object",
                 "parameters": {}
                 }
             ]
@@ -97,7 +97,7 @@ class TestPlanParser(unittest.TestCase):
         tasks = [
             Task(task_id=0, action="move_home", description="Move to home"),
             Task(task_id=1, action="see", description="See object", 
-                 parameters={"target": "red_square"})
+                 parameters={"target": "red_object"})
         ]
         
         plan = ExecutionPlan(tasks=tasks)
@@ -111,7 +111,7 @@ class TestPlanParser(unittest.TestCase):
         tasks = [
             Task(task_id=0, action="move_home", description="Move to home"),
             Task(task_id=2, action="see", description="See object",  # Missing task_id 1
-                 parameters={"target": "red_square"})
+                 parameters={"target": "red_object"})
         ]
         
         plan = ExecutionPlan(tasks=tasks)

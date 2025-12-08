@@ -7,3 +7,6 @@ openai>=1.0.0              # OpenAI API client for GPT-5
 
 # Environment Variables
 python-dotenv>=1.0.0       # Load environment variables from .env file
+
+# ROSBridge Integration
+roslibpy>=0.7.0            # ROSBridge WebSocket client for Python

@@ -80,7 +80,7 @@ def main():
     print("="*60)
     print("Instructions:")
     print(f"1. Say '{config.VOICE_START_KEYWORD}' to start a command")
-    print("2. Say your command (e.g., 'pick up the red square and move it to the right')")
+    print("2. Say your command (e.g., 'pick up the red object and move it to the right')")
     print(f"3. Say '{config.VOICE_STOP_KEYWORD}' to end the command")
     print(f"4. The system will generate an execution plan using {config.LLM_MODEL}")
     print("5. Press Ctrl+C to exit")

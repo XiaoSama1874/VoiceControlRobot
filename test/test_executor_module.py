@@ -65,7 +65,7 @@ class TestExecutorModule(unittest.TestCase):
         # First generate a plan
         try:
             planner = LLMPlanner()
-            command = "pick up the red square"
+            command = "pick up the red object"
             plan = planner.generate_plan(command)
             
             if plan is None:
@@ -89,7 +89,7 @@ class TestExecutorModule(unittest.TestCase):
         # Generate a plan that uses see() and move()
         try:
             planner = LLMPlanner()
-            command = "pick up the red square"
+            command = "pick up the red object"
             plan = planner.generate_plan(command)
             
             if plan is None:
@@ -116,8 +116,8 @@ class TestExecutorModule(unittest.TestCase):
         # Create a simple plan manually
         tasks = [
             Task(task_id=0, action="move_home", description="Move to home"),
-            Task(task_id=1, action="see", description="See red square", 
-                 parameters={"target": "red_square"}),
+            Task(task_id=1, action="see", description="See red object", 
+                 parameters={"target": "red_object"}),
             Task(task_id=2, action="move", description="Move to object",
                  parameters={"x": None, "y": None, "z": None}),
             Task(task_id=3, action="grasp", description="Grasp object",
@@ -142,8 +142,8 @@ class TestExecutorModule(unittest.TestCase):
         # Create a plan with see() followed by move()
         tasks = [
             Task(task_id=0, action="move_home", description="Move to home"),
-            Task(task_id=1, action="see", description="See red square",
-                 parameters={"target": "red_square"}),
+            Task(task_id=1, action="see", description="See red object",
+                 parameters={"target": "red_object"}),
             Task(task_id=2, action="move", description="Move to object",
                  parameters={"x": None, "y": None, "z": None}),
             Task(task_id=3, action="move_home", description="Return home")

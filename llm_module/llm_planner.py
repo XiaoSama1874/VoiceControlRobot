@@ -57,10 +57,29 @@ class LLMPlanner:
         bin_y = bin_coords.get("y", -0.2)
         bin_z = bin_coords.get("z", 0.3)
         
+        # Get red_bin and green_bin coordinates
+        red_bin_coords = config.BIN_COORDINATES.get("red_bin", bin_coords)
+        red_bin_x = red_bin_coords.get("x", bin_x)
+        red_bin_y = red_bin_coords.get("y", bin_y)
+        red_bin_z = red_bin_coords.get("z", bin_z)
+        
+        green_bin_coords = config.BIN_COORDINATES.get("green_bin", bin_coords)
+        green_bin_x = green_bin_coords.get("x", bin_x)
+        green_bin_y = green_bin_coords.get("y", bin_y)
+        green_bin_z = green_bin_coords.get("z", bin_z)
+        
         # Format bin coordinates as strings for JSON examples (remove .0 for integers)
         bin_x_str = str(int(bin_x)) if bin_x == int(bin_x) else str(bin_x)
         bin_y_str = str(int(bin_y)) if bin_y == int(bin_y) else str(bin_y)
         bin_z_str = str(int(bin_z)) if bin_z == int(bin_z) else str(bin_z)
+        
+        red_bin_x_str = str(int(red_bin_x)) if red_bin_x == int(red_bin_x) else str(red_bin_x)
+        red_bin_y_str = str(int(red_bin_y)) if red_bin_y == int(red_bin_y) else str(red_bin_y)
+        red_bin_z_str = str(int(red_bin_z)) if red_bin_z == int(red_bin_z) else str(red_bin_z)
+        
+        green_bin_x_str = str(int(green_bin_x)) if green_bin_x == int(green_bin_x) else str(green_bin_x)
+        green_bin_y_str = str(int(green_bin_y)) if green_bin_y == int(green_bin_y) else str(green_bin_y)
+        green_bin_z_str = str(int(green_bin_z)) if green_bin_z == int(green_bin_z) else str(green_bin_z)
         
         # Build prompt using string formatting to avoid f-string nesting issues
         prompt_template = """You are a robot task planner. Your job is to convert natural language commands into structured execution plans.
@@ -92,18 +111,32 @@ Available Actions:
      * Direction mapping: forward→+x, backward/back→-x, left→+y, right→-y, up→+z, down→-z
      * Relative movement is based on the robot's current position (the gripper's current center position)
 3. grasp(true/false) - Grasp (true) or release (false) the end effector
-4. see(target) - Use vision to identify a target object and get its coordinates. Parameter: target (e.g., "red_cube", "blue_cube")
+4. see(target) - Use vision to identify a target object and get its coordinates. Parameter: target (e.g., "red_object", "green_object", "blue_object")
    - CRITICAL: You MUST call move_home() BEFORE calling see() because vision recognition requires the robot to be at a fixed home position
    - The robot must be at home position for accurate vision recognition
-   - NOTE: "bin" is NOT identified through vision - use predefined coordinates instead (see below)
+   - NOTE: Bins are NOT identified through vision - use predefined coordinates instead (see below)
 
 Predefined Locations (Configuration Values):
-- "bin": A drop-off location at coordinates ({bin_x}, {bin_y}, {bin_z}) m (from configuration, NOT from vision)
+- "bin": A default drop-off location at coordinates ({bin_x}, {bin_y}, {bin_z}) m (from configuration, NOT from vision)
   * Bin coordinates are predefined in configuration and do NOT require see() function
   * When moving to bin, ALWAYS use absolute coordinates: {{"x": {bin_x_str}, "y": {bin_y_str}, "z": {bin_z_str}}}
   * Do NOT use see("bin") - bin location is known and does not need vision recognition
-  * Use this location when commands mention "put in bin", "place in bin", "drop in bin", etc.
-  * Example: "pick up the red cube and put it in the bin" should move to bin coordinates ({bin_x}, {bin_y}, {bin_z}) after grasping
+  * Use this location when commands mention "put in bin", "place in bin", "drop in bin", etc. (generic bin)
+  
+- "red_bin": A red-colored drop-off location at coordinates ({red_bin_x}, {red_bin_y}, {red_bin_z}) m (from configuration, NOT from vision)
+  * Red bin coordinates are predefined in configuration and do NOT require see() function
+  * When moving to red_bin, ALWAYS use absolute coordinates: {{"x": {red_bin_x_str}, "y": {red_bin_y_str}, "z": {red_bin_z_str}}}
+  * Do NOT use see("red_bin") - red bin location is known and does not need vision recognition
+  * Use this location when commands mention "put in red bin", "place in red bin", "drop in red bin", etc.
+  
+- "green_bin": A green-colored drop-off location at coordinates ({green_bin_x}, {green_bin_y}, {green_bin_z}) m (from configuration, NOT from vision)
+  * Green bin coordinates are predefined in configuration and do NOT require see() function
+  * When moving to green_bin, ALWAYS use absolute coordinates: {{"x": {green_bin_x_str}, "y": {green_bin_y_str}, "z": {green_bin_z_str}}}
+  * Do NOT use see("green_bin") - green bin location is known and does not need vision recognition
+  * Use this location when commands mention "put in green bin", "place in green bin", "drop in green bin", etc.
+  
+  * Example: "pick up the red object and put it in the red bin" should move to red_bin coordinates ({red_bin_x}, {red_bin_y}, {red_bin_z}) after grasping
+  * Example: "pick up the green object and put it in the green bin" should move to green_bin coordinates ({green_bin_x}, {green_bin_y}, {green_bin_z}) after grasping
 
 Output Format:
 You must return a valid JSON object with the following structure:
@@ -117,19 +150,19 @@ You must return a valid JSON object with the following structure:
     {{
       "task_id": 1,
       "action": "see",
-      "description": "Identify the red cube using vision",
-      "parameters": {{"target": "red_cube"}}
+      "description": "Identify the red object using vision",
+      "parameters": {{"target": "red_object"}}
     }},
     {{
       "task_id": 2,
       "action": "move",
-      "description": "Move arm to red cube location",
+      "description": "Move arm to red object location",
       "parameters": {{"x": null, "y": null, "z": null}}
     }},
     {{
       "task_id": 3,
       "action": "grasp",
-      "description": "Grasp the red cube",
+      "description": "Grasp the red object",
       "parameters": {{"grasp": true}}
     }},
     {{
@@ -165,15 +198,20 @@ Important Rules:
 - Do NOT start with move_home unless explicitly requested OR if the plan includes see() action
 - Do NOT end with move_home unless the task involves object manipulation (grasp/release) or explicitly requested
 - For simple movement commands (e.g., "move right", "move forward") that don't involve grasping objects or vision, do NOT add move_home at the end
-- Use see() action to identify objects (e.g., "red_cube", "blue_cube") before moving to them
+- Use see() action to identify objects (e.g., "red_object", "green_object", "blue_object") before moving to them
 - Use null for coordinates that need to be determined by vision (for objects only)
-- For bin/drop-off operations (e.g., "put in bin", "place in bin", "drop in bin"):
-  * Bin coordinates are predefined in configuration: {{"x": {bin_x_str}, "y": {bin_y_str}, "z": {bin_z_str}}}
-  * Do NOT use see("bin") - bin location is known from configuration
-  * Always use absolute coordinates {{"x": {bin_x_str}, "y": {bin_y_str}, "z": {bin_z_str}}} when moving to bin
-  * After moving to bin, always release the gripper with grasp(false)
+- For bin/drop-off operations (e.g., "put in bin", "place in bin", "drop in bin", "put in red bin", "put in green bin"):
+  * Bin coordinates are predefined in configuration and do NOT require see() function
+  * Available bins: "bin" (default), "red_bin", "green_bin"
+  * Default bin coordinates: {{"x": {bin_x_str}, "y": {bin_y_str}, "z": {bin_z_str}}}
+  * Red bin coordinates: {{"x": {red_bin_x_str}, "y": {red_bin_y_str}, "z": {red_bin_z_str}}}
+  * Green bin coordinates: {{"x": {green_bin_x_str}, "y": {green_bin_y_str}, "z": {green_bin_z_str}}}
+  * Do NOT use see("bin"), see("red_bin"), or see("green_bin") - bin locations are known from configuration
+  * Always use absolute coordinates when moving to any bin
+  * Use "bin" for generic bin commands, "red_bin" for red bin, "green_bin" for green bin
+  * After moving to any bin, always release the gripper with grasp(false)
   * Consider moving up slightly before releasing to avoid collisions
-- For relative movement commands (e.g., "move right", "move forward", "move the red cube to the right"):
+- For relative movement commands (e.g., "move right", "move forward", "move the red object to the right"):
   * Use {{"relative": true, "direction": "direction_name", "distance": value_in_m}}
   * If distance is not mentioned, omit the "distance" field to use default (0.05m = 5cm)
   * All distance values are in meters (m)
@@ -188,7 +226,19 @@ Important Rules:
             bin_z=bin_z,
             bin_x_str=bin_x_str,
             bin_y_str=bin_y_str,
-            bin_z_str=bin_z_str
+            bin_z_str=bin_z_str,
+            red_bin_x=red_bin_x,
+            red_bin_y=red_bin_y,
+            red_bin_z=red_bin_z,
+            red_bin_x_str=red_bin_x_str,
+            red_bin_y_str=red_bin_y_str,
+            red_bin_z_str=red_bin_z_str,
+            green_bin_x=green_bin_x,
+            green_bin_y=green_bin_y,
+            green_bin_z=green_bin_z,
+            green_bin_x_str=green_bin_x_str,
+            green_bin_y_str=green_bin_y_str,
+            green_bin_z_str=green_bin_z_str
         )
     
     def generate_plan(self, command: str, max_retries: int = None) -> Optional[ExecutionPlan]:

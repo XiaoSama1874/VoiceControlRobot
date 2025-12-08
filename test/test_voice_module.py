@@ -118,7 +118,7 @@ class TestVoiceModuleFull(unittest.TestCase):
         self.assertEqual(detector.state, CommandState.RECORDING_COMMAND)
         
         # Process stop keyword
-        result = detector.process_text("the red square end")
+        result = detector.process_text("the red object end")
         self.assertEqual(detector.state, CommandState.WAITING_FOR_START)
         self.assertIsNotNone(result)
         print("\n✓ Command detector state machine works correctly")
