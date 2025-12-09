@@ -460,6 +460,25 @@ python main_voice.py
 - **Object manipulation**: "pick up the red object"
 - **Complex task**: "grab the blue object and move it forward, then release it"
 
+### Video Demonstrations
+
+#### 1. Simple Command Demo - Relative and Absolute Movement
+This video demonstrates the robot's ability to perform both relative and absolute position movements:
+- **Relative Movement**: Commands like "move forward", "move right" that move the robot relative to its current position
+- **Absolute Movement**: Commands that move the robot to specific coordinates
+- Shows how the system maintains context between commands
+
+📹 [View Simple Command Demo Video](presentation/simple_command.MOV)
+
+#### 2. Complex Command Demo - Pick and Place
+This video demonstrates complex pick and place operations:
+- **Object Recognition**: Using vision system to identify objects (red, green, blue objects)
+- **Pick and Place**: Grasping objects and placing them in designated bins
+- **Multi-step Planning**: Shows how the LLM generates complex execution plans for intricate tasks
+- **Context Management**: Demonstrates how the system maintains state across multiple operations
+
+📹 [View Complex Command Demo Video](presentation/complex_command.MOV)
+
 ## Testing
 
 ### Running Tests
