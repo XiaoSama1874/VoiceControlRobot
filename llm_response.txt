@@ -3,43 +3,89 @@
     {
       "task_id": 0,
       "action": "move_home",
-      "description": "Move to home position for vision recognition before finding the right object"
+      "description": "Move to home position for vision recognition before finding the red object"
     },
     {
       "task_id": 1,
       "action": "see",
-      "description": "Identify the right-side object using vision",
-      "parameters": {"target": "right_object"}
+      "description": "Identify the red object using vision",
+      "parameters": {"target": "red_object"}
     },
     {
       "task_id": 2,
       "action": "move",
-      "description": "Move arm to the right object location",
+      "description": "Move arm to the red object location",
       "parameters": {"x": null, "y": null, "z": null}
     },
     {
       "task_id": 3,
       "action": "grasp",
-      "description": "Grasp the right object",
+      "description": "Grasp the red object",
       "parameters": {"grasp": true}
     },
     {
       "task_id": 4,
       "action": "move",
-      "description": "Lift the right object slightly upward to avoid collisions",
-      "parameters": {"relative": true, "direction": "up", "distance": 0.05}
+      "description": "Move to the red bin location to place the red object",
+      "parameters": {"x": 0.1503, "y": 0.0, "z": 0.0708}
     },
     {
       "task_id": 5,
       "action": "move",
-      "description": "Move to the red bin location to place the object",
-      "parameters": {"x": 0.1503, "y": 0.0, "z": 0.0708}
+      "description": "Move slightly up above the red bin to avoid collision before release",
+      "parameters": {"relative": true, "direction": "up", "distance": 0.02}
     },
     {
       "task_id": 6,
       "action": "grasp",
-      "description": "Release the object into the red bin",
+      "description": "Release the red object into the red bin",
       "parameters": {"grasp": false}
+    },
+    {
+      "task_id": 7,
+      "action": "move_home",
+      "description": "Return to home position for vision recognition before finding the green object"
+    },
+    {
+      "task_id": 8,
+      "action": "see",
+      "description": "Identify the green object using vision",
+      "parameters": {"target": "green_object"}
+    },
+    {
+      "task_id": 9,
+      "action": "move",
+      "description": "Move arm to the green object location",
+      "parameters": {"x": null, "y": null, "z": null}
+    },
+    {
+      "task_id": 10,
+      "action": "grasp",
+      "description": "Grasp the green object",
+      "parameters": {"grasp": true}
+    },
+    {
+      "task_id": 11,
+      "action": "move",
+      "description": "Move to the green bin location to place the green object",
+      "parameters": {"x": 0.2021, "y": 0.0, "z": 0.0708}
+    },
+    {
+      "task_id": 12,
+      "action": "move",
+      "description": "Move slightly up above the green bin to avoid collision before release",
+      "parameters": {"relative": true, "direction": "up", "distance": 0.02}
+    },
+    {
+      "task_id": 13,
+      "action": "grasp",
+      "description": "Release the green object into the green bin",
+      "parameters": {"grasp": false}
+    },
+    {
+      "task_id": 14,
+      "action": "move_home",
+      "description": "Return to home position after placing both objects in their respective bins"
     }
   ]
 }

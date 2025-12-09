@@ -88,7 +88,82 @@ class TestLLMModule(unittest.TestCase):
             self._save_plan_to_file(plan, "test_generate_plan_complex_command", command)
         
         print(f"\n✓ Generated {len(plan.tasks)} tasks for command: '{command}'")
+
+
+    def test_generate_plan_complex_command2(self):
+        """Test generating plan from a complex command."""
+        command = "draw a square on the sky"
+        plan = self.planner.generate_plan(command)
+        
+        self.assertIsNotNone(plan, "Plan should be generated")
+        self.assertGreater(len(plan.tasks), 0, "Plan should have at least one task")
+        
+        # Save plan to file
+        if plan:
+            self._save_plan_to_file(plan, "draw_square_on_sky", command)
+        
+        print(f"\n✓ Generated {len(plan.tasks)} tasks for command: '{command}'")
+
+
+    def test_generate_plan_complex_command3(self):
+        """Test generating plan from a complex command."""
+        command = "Stack all the blocks together."
+        plan = self.planner.generate_plan(command)
+        
+        self.assertIsNotNone(plan, "Plan should be generated")
+        self.assertGreater(len(plan.tasks), 0, "Plan should have at least one task")
+        
+        # Save plan to file
+        if plan:
+            self._save_plan_to_file(plan, "stack_blocks_together", command)
+        
+        print(f"\n✓ Generated {len(plan.tasks)} tasks for command: '{command}'")
     
+    def test_generate_plan_complex_command4(self):
+        """Test generating plan from a complex command."""
+        
+        command = "pick up the red object and place it in the red bin"
+        plan = self.planner.generate_plan(command)
+        
+        self.assertIsNotNone(plan, "Plan should be generated")
+        self.assertGreater(len(plan.tasks), 0, "Plan should have at least one task")
+        
+        # Save plan to file
+        if plan:
+            self._save_plan_to_file(plan, "pick_up_red_object_and_place_in_red_bin", command)
+        
+        print(f"\n✓ Generated {len(plan.tasks)} tasks for command: '{command}'")
+
+    def test_generate_plan_complex_command5(self):
+        """Test generating plan from a complex command."""
+        
+        command = "Draw a W in the air"
+        plan = self.planner.generate_plan(command)
+        
+        self.assertIsNotNone(plan, "Plan should be generated")
+        self.assertGreater(len(plan.tasks), 0, "Plan should have at least one task")
+        
+        # Save plan to file
+        if plan:
+            self._save_plan_to_file(plan, "draw w", command)
+        
+        print(f"\n✓ Generated {len(plan.tasks)} tasks for command: '{command}'")
+
+    def test_generate_plan_complex_command6(self):
+        """Test generating plan from a complex command."""
+        
+        command = "pick up the red object and place it in the red bin and then pick up the green object and place it in the green bin and return to home"
+        plan = self.planner.generate_plan(command)
+        
+        self.assertIsNotNone(plan, "Plan should be generated")
+        self.assertGreater(len(plan.tasks), 0, "Plan should have at least one task")
+        
+        # Save plan to file
+        if plan:
+            self._save_plan_to_file(plan, "pick two objects and place them in the bins and return to home", command)
+        
+        print(f"\n✓ Generated {len(plan.tasks)} tasks for command: '{command}'")
+
     def test_generate_plan_with_move_command(self):
         """Test generating plan for move command."""
         command = "move the blue object to position 10, 5, 2"
